@@ -35,7 +35,7 @@ func main() {
 	}
 
 	// print benchmarks results
-	fmt.Printf("mean concat execution time (%d elements, %d runs, %0.2f%% confidence level)\n",
+	fmt.Printf("mean concat execution time (%d elements, %d runs, %0.2f confidence level)\n",
 		inputSize, runs, confidenceLevel)
 	for i, _ := range b {
 		fmt.Printf("% 17s : %s - %s\n", descriptions[i], b[i][0], b[i][1])
@@ -77,7 +77,7 @@ func benchmark(f concat, input []string) ([2]time.Duration, error) {
 type concat func([]string) string
 
 var versions []concat = []concat{v1, v2, v3, v4, v5}
-var descriptions []string = []string{"+ string operator", "same with range", "strings.Join", "bytes.Buffer", `Sprintf("%q")`}
+var descriptions []string = []string{"+ string operator", "same with range", "strings.Join", "bytes.Buffer", `Sprintf("%v")`}
 
 func v1(input []string) string {
 	var output, sep string
