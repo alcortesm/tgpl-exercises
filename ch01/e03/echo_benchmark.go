@@ -36,8 +36,8 @@ func sliceOfManyShortStrings(howMany int) []string {
 func runAllBenchmarks(input []string) []result {
 	results := make([]result, len(versions))
 	var err error
-	for i, fn := range versions {
-		results[i], err = benchmark(fn, input)
+	for i, v := range versions {
+		results[i], err = benchmark(v.fn, input)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -51,13 +51,15 @@ type result [2]time.Duration
 
 type concat func([]string) string
 
-var versions = []concat{v1, v2, v3, v4, v5}
-var descriptions = []string{
-	"+ string operator",
-	"same with range",
-	"strings.Join",
-	"bytes.Buffer",
-	`Sprintf("%v")`,
+var versions = [...]struct {
+	fn          concat
+	description string
+}{
+	{fn: v1, description: "+ string operator"},
+	{fn: v2, description: "same with range"},
+	{fn: v3, description: "strings.Join"},
+	{fn: v4, description: "bytes.Buffer"},
+	{fn: v5, description: `Sprintf("%v")`},
 }
 
 // Runs `f` function over `input` a number of times (`runs`) and
@@ -138,6 +140,6 @@ func printResults(results []result) {
 	fmt.Printf("Mean concatenation time of %d short strings.\n", inputSize)
 	fmt.Printf("(calculated over %d runs with a %0.2f confidence level)\n", runs, confidenceLevel)
 	for i, result := range results {
-		fmt.Printf("% 17s : %s - %s\n", descriptions[i], result[0], result[1])
+		fmt.Printf("% 17s : %s - %s\n", versions[i].description, result[0], result[1])
 	}
 }
