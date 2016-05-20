@@ -51,8 +51,14 @@ type result [2]time.Duration
 
 type concat func([]string) string
 
-var versions []concat = []concat{v1, v2, v3, v4, v5}
-var descriptions []string = []string{"+ string operator", "same with range", "strings.Join", "bytes.Buffer", `Sprintf("%v")`}
+var versions = []concat{v1, v2, v3, v4, v5}
+var descriptions = []string{
+	"+ string operator",
+	"same with range",
+	"strings.Join",
+	"bytes.Buffer",
+	`Sprintf("%v")`,
+}
 
 // Runs `f` function over `input` a number of times (`runs`) and
 // calculates the confidence intervals of the mean duration of each run
@@ -79,11 +85,15 @@ func benchmark(fn concat, input []string) (result, error) {
 	return asDuration, nil
 }
 
+const (
+	realSep = " "
+)
+
 func v1(input []string) string {
 	var output, sep string
 	for i := 0; i < len(input); i++ {
 		output += sep + input[i]
-		sep = " "
+		sep = realSep
 	}
 
 	return "[" + output + "]"
@@ -93,7 +103,7 @@ func v2(input []string) string {
 	var output, sep string
 	for _, s := range input {
 		output += sep + s
-		sep = " "
+		sep = realSep
 	}
 
 	return "[" + output + "]"
@@ -112,7 +122,7 @@ func v4(input []string) string {
 	for _, s := range input {
 		buf.WriteString(sep)
 		buf.WriteString(s)
-		sep = " "
+		sep = realSep
 	}
 
 	buf.WriteString("]")
