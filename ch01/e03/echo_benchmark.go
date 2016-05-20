@@ -17,67 +17,67 @@ const (
 )
 
 func main() {
-	// generate input slice of strings
-	input := make([]string, inputSize)
-	for i := 0; i < inputSize; i++ {
+	input := sliceOfManyShortStrings(inputSize)
+	benchmarks := runAllBenchmarks(input)
+	printResults(benchmarks)
+
+	os.Exit(0)
+}
+
+func sliceOfManyShortStrings(howMany int) []string {
+	input := make([]string, howMany)
+	for i := 0; i < howMany; i++ {
 		input[i] = fmt.Sprint(i)
 	}
 
-	// run the benchmarks of all the functions in `versions`
-	b := make([][2]time.Duration, len(versions))
+	return input
+}
+
+func runAllBenchmarks(input []string) []result {
+	results := make([]result, len(versions))
 	var err error
-	for i, v := range versions {
-		b[i], err = benchmark(v, input)
+	for i, fn := range versions {
+		results[i], err = benchmark(fn, input)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 	}
 
-	// print benchmarks results
-	fmt.Printf("mean concat execution time (%d elements, %d runs, %0.2f confidence level)\n",
-		inputSize, runs, confidenceLevel)
-	for i, _ := range b {
-		fmt.Printf("% 17s : %s - %s\n", descriptions[i], b[i][0], b[i][1])
-	}
-
-	os.Exit(0)
+	return results
 }
 
-// Runs `f` function over `input` a number of times (`runs`) and
-// calculates the confidence intervals of the mean duration of each run
-// for a `confidence` confidence level.
-func benchmark(f concat, input []string) ([2]time.Duration, error) {
-	var execTimes = make([]float64, runs)
-	for i := 0; i < runs; i++ {
-		start := time.Now()
-		f(input)
-		elapsed := time.Since(start)
-		execTimes[i] = float64(elapsed)
-	}
-
-	durations, err := sample.New(execTimes)
-	if err != nil {
-		return [2]time.Duration{}, err
-	}
-
-	meanConfidenceIntervals, err := durations.MeanConfidenceIntervals(confidenceLevel)
-	if err != nil {
-		return [2]time.Duration{}, err
-	}
-
-	asDuration := [2]time.Duration{
-		time.Duration(meanConfidenceIntervals[0]),
-		time.Duration(meanConfidenceIntervals[1]),
-	}
-
-	return asDuration, nil
-}
+type result [2]time.Duration
 
 type concat func([]string) string
 
 var versions []concat = []concat{v1, v2, v3, v4, v5}
 var descriptions []string = []string{"+ string operator", "same with range", "strings.Join", "bytes.Buffer", `Sprintf("%v")`}
+
+// Runs `f` function over `input` a number of times (`runs`) and
+// calculates the confidence intervals of the mean duration of each run
+// for a `confidence` confidence level.
+func benchmark(fn concat, input []string) (result, error) {
+	var execTimes = make([]float64, runs)
+	for i := 0; i < runs; i++ {
+		start := time.Now()
+		fn(input)
+		elapsed := time.Since(start)
+		execTimes[i] = float64(elapsed)
+	}
+
+	meanInterval, err := sample.MeanConfidenceIntervals(execTimes, confidenceLevel)
+	if err != nil {
+		return result{}, err
+	}
+
+	asDuration := result{
+		time.Duration(meanInterval[0]),
+		time.Duration(meanInterval[1]),
+	}
+
+	return asDuration, nil
+}
 
 func v1(input []string) string {
 	var output, sep string
@@ -85,6 +85,7 @@ func v1(input []string) string {
 		output += sep + input[i]
 		sep = " "
 	}
+
 	return "[" + output + "]"
 }
 
@@ -94,6 +95,7 @@ func v2(input []string) string {
 		output += sep + s
 		sep = " "
 	}
+
 	return "[" + output + "]"
 }
 
@@ -104,16 +106,28 @@ func v3(input []string) string {
 func v4(input []string) string {
 	var buf bytes.Buffer
 	var sep string
+
 	buf.WriteString("[")
+
 	for _, s := range input {
 		buf.WriteString(sep)
 		buf.WriteString(s)
 		sep = " "
 	}
+
 	buf.WriteString("]")
+
 	return buf.String()
 }
 
 func v5(input []string) string {
 	return fmt.Sprintf("%v", input)
+}
+
+func printResults(results []result) {
+	fmt.Printf("Mean concatenation time of %d short strings.\n", inputSize)
+	fmt.Printf("(calculated over %d runs with a %0.2f confidence level)\n", runs, confidenceLevel)
+	for i, result := range results {
+		fmt.Printf("% 17s : %s - %s\n", descriptions[i], result[0], result[1])
+	}
 }
