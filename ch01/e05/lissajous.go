@@ -12,7 +12,10 @@ import (
 	"time"
 )
 
-var palette = []color.Color{color.White, color.Black}
+var palette = []color.Color{
+	color.Black,
+	color.RGBA{0x76, 0xEE, 0x00, 0xFF}, // osciloscope green
+}
 
 const (
 	backgroundIndex = iota
