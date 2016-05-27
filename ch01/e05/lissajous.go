@@ -70,7 +70,7 @@ func createFrame(anim gif.GIF, freq, phase float64) (*image.Paletted, int) {
 	for t := 0.0; t < cycles*2*math.Pi; t += res {
 		x := math.Sin(t)
 		y := math.Sin(t*freq + phase)
-		cX, cY := coordsToRect(x, y)
+		cX, cY := cartesianToImage(x, y)
 		fmt.Printf("t = %f (x, y) = (%f, %f) (cX, cY) = (%d, %d)\n", t, x, y, cX, cY)
 		img.SetColorIndex(cX, cY, blackIndex)
 	}
@@ -78,7 +78,7 @@ func createFrame(anim gif.GIF, freq, phase float64) (*image.Paletted, int) {
 	return img, delay
 }
 
-func coordsToRect(x, y float64) (int, int) {
+func cartesianToImage(x, y float64) (int, int) {
 	cX := (x*size + 0.5) + size
 	cY := (-y*size + 0.5) + size
 
