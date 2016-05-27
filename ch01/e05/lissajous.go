@@ -21,7 +21,7 @@ const (
 	output  = "/tmp/output.gif"
 	cycles  = 1     // number of complete x oscillator revolutions
 	res     = 0.001 // angular resolution
-	size    = 100   // image canvas covers [-size..+size]
+	side    = 200   // image canvas side in pixels [0..side]
 	nframes = 1     // number of animation frames
 	delay   = 8     // delay between frames in 10ms units
 )
@@ -64,14 +64,13 @@ func lissajous(out io.Writer) error {
 }
 
 func createFrame(anim gif.GIF, freq, phase float64) (*image.Paletted, int) {
-	rect := image.Rect(0, 0, 2*size+1, 2*size+1)
+	rect := image.Rect(0, 0, side, side)
 	img := image.NewPaletted(rect, palette)
 
 	for t := 0.0; t < cycles*2*math.Pi; t += res {
 		x := math.Sin(t)
 		y := math.Sin(t*freq + phase)
 		cX, cY := cartesianToImage(x, y)
-		fmt.Printf("t = %f (x, y) = (%f, %f) (cX, cY) = (%d, %d)\n", t, x, y, cX, cY)
 		img.SetColorIndex(cX, cY, blackIndex)
 	}
 
@@ -79,8 +78,8 @@ func createFrame(anim gif.GIF, freq, phase float64) (*image.Paletted, int) {
 }
 
 func cartesianToImage(x, y float64) (int, int) {
-	cX := (x*size + 0.5) + size
-	cY := (-y*size + 0.5) + size
+	cX := (x + 1.0) * side / 2
+	cY := (-y + 1.0) * side / 2
 
 	return int(cX), int(cY)
 }
