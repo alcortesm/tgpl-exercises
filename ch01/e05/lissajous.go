@@ -15,8 +15,8 @@ import (
 var palette = []color.Color{color.White, color.Black}
 
 const (
-	whiteIndex = iota
-	blackIndex
+	backgroundIndex = iota
+	foregroundIndex
 )
 
 const (
@@ -78,7 +78,7 @@ func createFrame(anim gif.GIF, freq, phase float64) (*image.Paletted, int) {
 		x := math.Sin(t)
 		y := math.Sin(t*freq + phase)
 		px, py := cartesianToImage(x, y)
-		img.SetColorIndex(px, py, blackIndex)
+		img.SetColorIndex(px, py, foregroundIndex)
 	}
 
 	return img, delay
