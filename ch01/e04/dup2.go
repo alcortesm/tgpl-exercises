@@ -16,7 +16,6 @@ func main() {
 	if len(files) == 0 {
 		countLines(io.Reader(os.Stdin), "/dev/stdin", counts)
 	} else {
-		// TODO: parallelize this using gorutines
 		for _, arg := range files {
 			f, err := os.Open(arg)
 			if err != nil {
