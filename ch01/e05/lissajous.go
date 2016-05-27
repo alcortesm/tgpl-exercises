@@ -7,7 +7,9 @@ import (
 	"image/gif"
 	"io"
 	"math"
+	"math/rand"
 	"os"
+	"time"
 )
 
 var palette = []color.Color{color.White, color.Black}
@@ -19,10 +21,10 @@ const (
 
 const (
 	output  = "/tmp/output.gif"
-	cycles  = 1     // number of complete x oscillator revolutions
+	cycles  = 4     // number of complete x oscillator revolutions
 	res     = 0.001 // angular resolution
-	side    = 200   // image canvas side in pixels [0..side]
-	nframes = 1     // number of animation frames
+	side    = 400   // image canvas side in pixels [0..side]
+	nframes = 64    // number of animation frames
 	delay   = 8     // delay between frames in 10ms units
 )
 
@@ -39,6 +41,8 @@ func main() {
 		}
 	}()
 
+	randomSeedUsingTime()
+
 	if err := lissajous(file); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -47,10 +51,13 @@ func main() {
 	fmt.Println("output is at", output)
 }
 
+func randomSeedUsingTime() {
+	rand.Seed(time.Now().UTC().UnixNano())
+}
+
 func lissajous(out io.Writer) error {
-	//freq := rand.Float64() * 3.0 // relative frequency of y oscillator
-	freq := 1.0  // relative frequency of y oscillator
-	phase := 0.0 // phase difference
+	freq := rand.Float64() * 3.0 // relative frequency of y oscillator
+	phase := 0.0                 // phase difference
 	anim := gif.GIF{LoopCount: nframes}
 
 	for i := 0; i < nframes; i++ {
@@ -70,8 +77,8 @@ func createFrame(anim gif.GIF, freq, phase float64) (*image.Paletted, int) {
 	for t := 0.0; t < cycles*2*math.Pi; t += res {
 		x := math.Sin(t)
 		y := math.Sin(t*freq + phase)
-		cX, cY := cartesianToImage(x, y)
-		img.SetColorIndex(cX, cY, blackIndex)
+		px, py := cartesianToImage(x, y)
+		img.SetColorIndex(px, py, blackIndex)
 	}
 
 	return img, delay
