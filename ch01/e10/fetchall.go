@@ -3,39 +3,73 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
 func main() {
+	urls := os.Args[1:]
+
 	start := time.Now()
-	ch := make(chan string)
-	for _, url := range os.Args[1:] {
-		go fetch(url, ch) // start a gorutine
-	}
-	for range os.Args[1:] {
-		fmt.Println(<-ch) // receive from channel ch
-	}
+
+	progress := asyncDownload(urls)
+	waitAndPrint(progress, len(urls))
+
 	fmt.Printf("%.2fs elapsed\n", time.Since(start).Seconds())
 }
 
-func fetch(url string, ch chan<- string) {
+func asyncDownload(urls []string) chan string {
+	progress := make(chan string)
+	for i, url := range urls {
+		savePath := "download-" + strconv.Itoa(i)
+		go fetchAndSave(url, savePath, progress)
+	}
+
+	return progress
+}
+
+func fetchAndSave(url, path string, progress chan<- string) {
 	start := time.Now()
 	resp, err := http.Get(url)
 	if err != nil {
-		ch <- fmt.Sprint(err) // send to channel ch
+		progress <- fmt.Sprint(err)
 		return
 	}
 
-	nbytes, err := io.Copy(ioutil.Discard, resp.Body)
-	resp.Body.Close()
+	nbytes, err := save(path, resp.Body)
+	errClose := resp.Body.Close()
+	if err == nil {
+		err = errClose
+	}
 	if err != nil {
-		ch <- fmt.Sprintf("while reading %s: %v\n", url, err)
+		progress <- fmt.Sprintf("while saving %s: %v\n", url, err)
 		return
 	}
 
 	secs := time.Since(start).Seconds()
-	ch <- fmt.Sprintf("%.2fs %7d %s", secs, nbytes, url)
+	progress <- fmt.Sprintf("%.2fs %7d %s", secs, nbytes, url)
+}
+
+func save(path string, contents io.Reader) (nr int64, err error) {
+	file, err := os.Create(path)
+	if err != nil {
+		return 0, err
+	}
+
+	defer func() {
+		errClose := file.Close()
+		if err == nil {
+			err = errClose
+		}
+	}()
+
+	return io.Copy(file, contents)
+}
+
+func waitAndPrint(ch <-chan string, n int) {
+	for i := 0; i < n; i++ {
+		fmt.Println(<-ch) // receive from channel ch
+	}
 }
