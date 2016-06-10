@@ -6,8 +6,6 @@ import (
 	"image/gif"
 	"io"
 	"math"
-	"math/rand"
-	"time"
 )
 
 var palette = []color.Color{
@@ -67,10 +65,6 @@ func Gif(out io.Writer, conf *Conf) error {
 	}
 
 	return gif.EncodeAll(out, &anim)
-}
-
-func randomSeedUsingTime() {
-	rand.Seed(time.Now().UTC().UnixNano())
 }
 
 func createFrame(anim gif.GIF, conf *Conf, phase float64) (*image.Paletted, int) {

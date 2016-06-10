@@ -1,5 +1,10 @@
 package main
 
+// TODO: write help using a template.
+//
+// TODO: formToConf is too repetitive, fix this by using a data structure and
+//       values of it for each option.
+
 import (
 	"errors"
 	"fmt"
@@ -108,7 +113,7 @@ func formToConf(forms url.Values) (*lissajous.Conf, error) {
 					"bad phaseInc value, an int was expected but %s was found",
 					v[0])
 			}
-		case "FreqDiff":
+		case "freqDiff":
 			conf.FreqDiff, err = strconv.ParseFloat(v[0], 64)
 			if err != nil {
 				return nil, fmt.Errorf(
@@ -131,20 +136,26 @@ const help = `<html>
 
 Accepted forms:
 <ul>
-<li>cycles   = <int>: number of complete x oscillator revolutions</li>
-<li>res      = <float>:  angular resolution</li>
-<li>side     = <int>:    image canvas side in pixels [0..side]</li>
-<li>nframes  = <int>:     number of animation frames</li>
-<li>delay    = <int>:      delay between frames in 10ms units</li>
-<li>phaseInc = <float>:    how much phase to increment in each frame</li>
-<li>freqDiff = <float>:    frequency difference between x and y</li>
+<li>cycles   = <int>:   number of complete x oscillator revolutions (default: 4)</li>
+<li>res      = <float>: angular resolution (default: 0.001)</li>
+<li>side     = <int>:   image canvas side in pixels [0..side] (default: 400)</li>
+<li>nframes  = <int>:   number of animation frames (default: 64)</li>
+<li>delay    = <int>:   delay between frames in 10ms units (default: 8)</li>
+<li>phaseInc = <float>: how much phase to increment in each frame (default: 0.1)</li>
+<li>freqDiff = <float>: frequency difference between x and y (default: 2.3)</li>
 </ul>
 
 
 <h1>Examples</h1>
 <ul>
 	<li>
-<a href="http://localhost:8000/?cycle=4&freqDiff=2.3&phaseInc=0.1">http://localhost:8000/?cycle=4&freqDiff=2.3&phaseInc=0.1</a>
+	<a href="http://localhost:8000/?cycles=2&freqDiff=1&side=1000">http://localhost:8000/?cycles=2&freqDiff=1&side=1000</a>
+	</li>
+	<li>
+	<a href="http://localhost:8000/?cycles=2&freqDiff=2">http://localhost:8000/?cycles=2&freqDiff=2</a>
+	</li>
+	<li>
+<a href="http://localhost:8000/?cycles=4&freqDiff=2.3&phaseInc=0.1">http://localhost:8000/?cycles=4&freqDiff=2.3&phaseInc=0.1</a>
 	</li>
 </ul>
 
